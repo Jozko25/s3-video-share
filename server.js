@@ -59,9 +59,12 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
 // Get download URL
 app.get('/api/download/:key', async (req, res) => {
   try {
+    const key = decodeURIComponent(req.params.key);
+    const filename = key.replace(/^\d+-/, ''); // Remove timestamp prefix
     const command = new GetObjectCommand({
       Bucket: BUCKET,
-      Key: decodeURIComponent(req.params.key)
+      Key: key,
+      ResponseContentDisposition: `attachment; filename="${filename}"`
     });
     const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
     res.json({ url });
