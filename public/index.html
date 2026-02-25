@@ -208,17 +208,8 @@
       }
     }
 
-    async function download(key) {
-      const res = await fetch('/api/download/' + key);
-      const data = await res.json();
-      const a = document.createElement('a');
-      a.href = data.url;
-      a.download = decodeURIComponent(key);
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+    function download(key) {
+      window.location.href = '/download/' + key;
     }
 
     async function del(key) {

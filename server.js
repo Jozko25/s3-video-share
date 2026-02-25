@@ -56,18 +56,18 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
   }
 });
 
-// Get download URL
-app.get('/api/download/:key', async (req, res) => {
+// Direct download redirect (works on Safari/iOS)
+app.get('/download/:key', async (req, res) => {
   try {
     const key = decodeURIComponent(req.params.key);
-    const filename = key.replace(/^\d+-/, ''); // Remove timestamp prefix
+    const filename = key.replace(/^\d+-/, '');
     const command = new GetObjectCommand({
       Bucket: BUCKET,
       Key: key,
       ResponseContentDisposition: `attachment; filename="${filename}"`
     });
     const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-    res.json({ url });
+    res.redirect(url);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
