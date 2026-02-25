@@ -56,18 +56,26 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
   }
 });
 
-// Direct download redirect (works on Safari/iOS)
+// Stream file directly through server (works on Safari/iOS)
 app.get('/download/:key', async (req, res) => {
   try {
     const key = decodeURIComponent(req.params.key);
     const filename = key.replace(/^\d+-/, '');
+
     const command = new GetObjectCommand({
       Bucket: BUCKET,
-      Key: key,
-      ResponseContentDisposition: `attachment; filename="${filename}"`
+      Key: key
     });
-    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-    res.redirect(url);
+
+    const data = await s3.send(command);
+
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    if (data.ContentLength) {
+      res.setHeader('Content-Length', data.ContentLength);
+    }
+
+    data.Body.pipe(res);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
